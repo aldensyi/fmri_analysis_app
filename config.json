@@ -1,0 +1,12 @@
+{
+    "bold":"testcase/bold.nii.gz",
+    "events":"testcase/events.tsv",
+    "save_directory":"directory/created/for/convienience/will/be/removed/later",
+    "glm_parameters":{
+        "noise_model":"ar1",
+        "standardize": false,
+        "hrf_model":"spm",
+        "drift_model":"cosine",
+        "high_pass":0.01
+    }
+}
