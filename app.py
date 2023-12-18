@@ -14,21 +14,23 @@ from nilearn.glm import threshold_stats_img
 from nilearn.plotting import plot_stat_map
 from nilearn.reporting import get_clusters_table
 
-# TODO:
-# - Probably should have separate functions for display of images
-# - Work on contrast matrix and after; need to look at jupyter notebook to regrasp the conditions
-
-# Loading the nifti file format and header information
-# TODO: Need to take input for img
 def loadFile(inputfile):
-    # accessing config.json file for the inputfile
-
+    """
+    - Loading the nifti file format and header information
+    - Usually will be accessing the config.json file for the inputfile
+    - Returns a image object and header object
+    """
+    
     img = nib.load(inputfile)
     hdr = img.header
     return img, hdr
 
-# Checking header to see if there are any empty fields
 def checkHeader(hdr_obj):
+    """
+    - Checking the header information to see if there are any empty fields
+    - Mostly for debugging purposes
+    """
+    
     data_shape = hdr_obj.get_data_shape()
     voxel_sizes = hdr_obj.get_zooms()
     spatial_units, temporal_units = hdr_obj.get_xyzt_units()
@@ -38,31 +40,38 @@ def checkHeader(hdr_obj):
     print("Spatial units:", spatial_units)
     print("Temporal units:", temporal_units)
 
-# Generating the first slice of the BOLD functional MRI
 def generate_first_slice(img_obj, save:bool, save_add):
+    """
+    - Generating the first slice of the BOLD functional MRI
+    """
     func_data = nilearn.image.index_img(img_obj, 0)
     plot_img(func_data, colorbar=True, cbar_tick_format="%i")
     
-    # figure out how to save within the app
     if save:
         final_save_add = save_add + "slices/first_slice.png"
         plt.savefig(final_save_add)
         plt.close()
     
-
-# Generating the mean slice of the object using BOLD functional MRI
 def get_mean_slice(img_obj):
+    """
+    - Generating the mean slice of the object using BOLD functional MRI image object
+    - Returns a mean nifti image
+    """
     return mean_img(img_obj)
 
-# Getting tsv file containing the events for the specific trial
-# TODO: Change the input file to app standard
 def get_stimfile(inputfile):
-    # input file from config.json
+    """
+    - Getting tsv/csv file containing the events for the specific trial
+    - Returns a dataframe
+    """
     return pd.read_table(inputfile)
 
-# Generating first level 
-# TODO: Change all of the variables to be taken in from the json file.
 def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
+    """
+    - Generating First Level GLM
+    - param will be a dictionary object containing the user-set parameter for the GLM
+    - Returns a GLM
+    """
 
     fmri_glm = FirstLevelModel(
         t_r=int(hdr_obj.get_zooms()[3]),
@@ -70,17 +79,19 @@ def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
         standardize=param["standardize"],
         hrf_model=param["hrf_model"],
         drift_model=param["drift_model"],
-        high_pass=param["high_pass"],
+        high_pass=param["high_pass"]
     )
     
     fmri_glm = fmri_glm.fit(img_obj, eventfile)
 
     return fmri_glm
 
-# Getting the design matrix 
-# TODO: Add code to save the plot in a separate directory
 def get_design_mtrx(glm_model_object, save: bool, save_add):
-    
+    """
+    - Generating Design Matrix and save when user set save boolean to true
+    - Returns GLM
+    """
+
     design_matrix = glm_model_object.design_matrices_[0]
 
     plot_design_matrix(design_matrix)
@@ -93,8 +104,12 @@ def get_design_mtrx(glm_model_object, save: bool, save_add):
 
     return design_matrix
 
-# Getting the conditions from the design matrix
 def get_conditions(design_matrix_df: pd.DataFrame):
+    """
+    - Extracting the Conditions from the previously created Design Matrix
+    - Returns a List object containing just the conditions from the Dataframe
+    """
+    
     keywords = ["drift_", "constant"]
     conditions = []
     column_hdrs = design_matrix_df.columns
@@ -104,9 +119,11 @@ def get_conditions(design_matrix_df: pd.DataFrame):
             conditions.append(element)
     return conditions
 
-# Displaying 
-# TODO: Add code to save the plot in a separate directory
 def display_expected_response_graph(design_mtrx, conditional, save: bool, sv_add):
+    """
+    - Generating the Expected Response Graph for the condition that was passed in through the "conditional" argument
+    """
+
     plt.plot(design_mtrx[conditional])
     plt.xlabel("scan")
     plt.title(f"Expected Response for Condition: \"{conditional}\"")
@@ -116,8 +133,12 @@ def display_expected_response_graph(design_mtrx, conditional, save: bool, sv_add
         plt.savefig(final_save_add)
         plt.close()
 
-# creating contrast matrix -> returns dictionary containing the items for dict
 def create_contrast_mtrix(design_matrix_df: pd.DataFrame):
+    """
+    - Creating contrast matrix via extracting the length of the design matrix and assigning true values based on the index of the condition within the dictionary
+    - Returns dictionary containing conditions of the NifTi object and its corresponding matrix
+    """
+    
     # getting the column length of design matrix 
     col_len = len(design_matrix_df.columns)
     conditions = {}
@@ -125,7 +146,7 @@ def create_contrast_mtrix(design_matrix_df: pd.DataFrame):
     # Removes drifts and constants from the condition columns
     main_conditions = get_conditions(design_matrix_df)
 
-    # creating empty contrast matrix
+    # creating contrast matrix containing all zeros (all falses)
     for elements in main_conditions:
         conditions[elements] = np.zeros(col_len)
 
@@ -138,6 +159,9 @@ def create_contrast_mtrix(design_matrix_df: pd.DataFrame):
     return conditions
 
 def plot_contrst_matrix(cond_dict: dict, design_matrx, save: bool, save_add):
+    """
+    - Generates contrasts matrixs of the conditions that were passed in through via the conditions dictionary created previously
+    """
 
     for conds in cond_dict:
         plot_contrast_matrix(cond_dict[conds], design_matrix=design_matrx)
@@ -147,16 +171,26 @@ def plot_contrst_matrix(cond_dict: dict, design_matrx, save: bool, save_add):
             plt.savefig(final_save_add)
             plt.close()
 
-#conds: condition that needs a effect map; needs to the np.array
-#input glm: fmri_glm object created earlier
+
 def get_effmap(conds, input_glm):
+    """
+    - conds: condition that needs a effect map; needs to the np.array
+    - input glm: fmri_glm object created earlier
+    """
     return input_glm.compute_contrast(conds, output_type="effect_size")
 
 def get_zmap(conds, input_glm):
+    """
+    - conds: condition that needs a effect map; needs to the np.array
+    - input glm: fmri_glm object created earlier
+    """
     return input_glm.compute_contrast(conds, output_type="z_score")
 
-# Generate a visualization of the statistical map with voxels that are have z-scores greater than 3 and is diplayed in the z plane
+
 def get_threshold_map_z(zmap, background_img, thrshold: int, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
+    """
+    - Generates a visualization of the statistical map with voxels that are have z-scores greater than the user-set threshold and is diplayed in the z plane
+    """
     plot_stat_map(
         zmap,
         bg_img=background_img,
@@ -172,9 +206,13 @@ def get_threshold_map_z(zmap, background_img, thrshold: int, cut_crds=3, condtn:
         plt.savefig(final_save_add)
         plt.close()
 
-# Generate a visualization of the statistical map with voxels that have p-values less than the user set alpha value and is diplayed in the z plane
+
 def get_threshold_map_p(zmap, background_img, a_val: float=0.001, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
-    
+    """
+    - Generates a visualization of the statistical map with voxels that have p-values less than the user-set alpha-value and is diplayed in the z plane
+    - a_val can be adjusted
+    """
+
     _, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="fpr")
     
     plot_stat_map(
@@ -193,9 +231,12 @@ def get_threshold_map_p(zmap, background_img, a_val: float=0.001, cut_crds=3, co
         plt.close()
 
 
-# Generate a visualization of the statistical map with voxels that are Bonferroni-corrected, has a p-value of less than 0.05 and is diplayed in the z plane
 def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
-    
+    """
+    - Generates a visualization of the statistical map with voxels that are Bonferroni-corrected, has a p-value of less than 0.05 and is diplayed in the z plane
+    - a_val can be adjusted
+    """
+
     _, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="bonferroni")
 
     plot_stat_map(
@@ -213,8 +254,13 @@ def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cut_
         plt.savefig(final_save_add)
         plt.close()
 
-# Controlling the expected proportion of false discoveries among detections by setting it to 0.05 or 5%
+
 def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):    
+    """
+    - Generates a visualization of the statistical map with voxels that are corrected via a set False Discovery Rate 
+        - set False Discovery Rate: Controlling the expected proportion of false discoveries among detections by setting it to 0.05 or 5%
+        - The base rate can be set by the user
+    """
 
     _, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="fdr")
 
@@ -234,6 +280,10 @@ def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05, cut_crds=3, c
         plt.close()
 
 def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, clstr:int=10,cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
+    """
+    - Generates a visualization of the statistical map with activated significant voxel clusters that are corrected via a set False Discovery Rate
+    - a_val can be adjusted for the False Discovery Rate
+    """
 
     clean_map, threshld = threshold_stats_img(
         zmap, alpha=a_val, height_control="fdr", cluster_threshold=clstr
@@ -256,6 +306,11 @@ def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, cls
 
 
 def get_clstrs_table(zmap, a_val: float=0.05, clstr:int=10, condtn:str="", save:bool=False, save_add:str=""):
+    """
+    - Generating a csv/table version of the Clusters Threshold Map
+    - a_val (alpha value) and the cluster limit (base set to 10 or higher voxels) can be adjusted by the user
+    """
+
     _, threshld = threshold_stats_img(
         zmap, alpha=a_val, height_control="fdr", cluster_threshold=clstr
     )
@@ -273,9 +328,11 @@ Done with Analysis
 Now for QA and f-test
 """
 
-# input should be the dict that we got from create contrast matrix
+
 def effcts_interest(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
-    # convert the dict to just the
+    """
+    - Generates a Effects of Interest contrast matrix based on all the conditions that were part of the NifTi file
+    """
 
     e_o_i= np.vstack(tuple(conditions.values()))
 
@@ -287,6 +344,11 @@ def effcts_interest(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
         plt.close()
 
 def get_ftest_map(zmap, background_img, a_val: float=0.05, clstr:int=10,cut_crds=3, condtn:str="",save:bool=False, save_add:str=""):
+    """
+    - Generate a visualization of the statistical map of the F test in which one seeks whether a certain combination of conditions (possibly two-, three- or higher-dimensional),
+    which explains a significant proportion of the signal.
+    """
+
     clean_map, threshold = threshold_stats_img(
         zmap, alpha=a_val, height_control="fdr", cluster_threshold=clstr
     )
@@ -308,49 +370,62 @@ def get_ftest_map(zmap, background_img, a_val: float=0.05, clstr:int=10,cut_crds
 
 
 def main():
-    #import nibabel
+    # Loading config.json values
     with open('config.json') as f:
         config = json.load(f)
 
+    # Create directories
     directories = ['data', 'data/slices', 'data/matrix', 'data/table', 'data/graphs', 'data/maps']
 
-    # Create directories
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
 
-    # subj should contain img and hdr
+    # Attaining the img and the header object
     subj_img, subj_hdr = loadFile(config["bold"])
-
+    
+    # Use when checking for header information
+    """
     data_shape = subj_hdr.get_data_shape()
     voxel_sizes = subj_hdr.get_zooms()
     spatial_units, temporal_units = subj_hdr.get_xyzt_units()
 
+    print("Data shape:", data_shape)
+    print("Voxel sizes:", voxel_sizes)
+    print("Spatial units:", spatial_units)
+    print("Temporal units:", temporal_units)
+    """
+
+    # Importing the events file and assigning commonly used objects within the config.json file as a local object
     evnts = get_stimfile(config["events"])
     save_path = config["save_directory"]
     glm_param = config["glm_parameters"]
 
-    # generates first slice and saves it
+    # Generates first slice and saves it
     generate_first_slice(subj_img, True, save_path)
     
-    # gets mean slice
+    # Generates mean slice
     mean_bg_img = get_mean_slice(subj_img)
 
-    # generates glm
+    # Generates GLM Object
     subj_glm = generate_glm_firstLevel(subj_img, subj_hdr, evnts, glm_param)
 
-    # generates design matrix
+    # Generates design matrix
     subj_dsgn_mtrx = get_design_mtrx(subj_glm, True, save_path)
 
-    # getting conditions
+    # Retrieving the conditions from the session
     subj_conds = get_conditions(subj_dsgn_mtrx)
 
+    # Displaying Expected Response Graph for each individual condition available
     for individual_cond in subj_conds:
         display_expected_response_graph(subj_dsgn_mtrx, individual_cond, True, save_path)
     
+    # Generate Contrast Matrix
     subj_contrst_mtrx = create_contrast_mtrix(subj_dsgn_mtrx)
 
+    # Saving the Contrast Matrix as an media file
     plot_contrst_matrix(subj_contrst_mtrx, subj_dsgn_mtrx,True, save_path)
-
+    
+    # Traversing each condition available and getting all the analysis out and storing them within the previously created directories
     for item in subj_contrst_mtrx:
         eff_map_subj = get_effmap(subj_contrst_mtrx[item], subj_glm)
         z_map_subj = get_zmap(subj_contrst_mtrx[item], subj_glm)
@@ -367,13 +442,11 @@ def main():
 
         get_clstrs_table(z_map_subj, 0.05, 10, item, True, save_path)
 
-
-
+    # Generating Effect of Interest contrast matrix and the f-test statistical map as QA measurements
     effcts_interest(subj_contrst_mtrx, subj_dsgn_mtrx, True, save_path)
 
     get_ftest_map(z_map_subj, mean_bg_img, 0.05, 10, 3, item, True, save_path)
 
 
 if __name__ == "__main__":
-
     main()
