@@ -14,21 +14,28 @@ from nilearn.glm import threshold_stats_img
 from nilearn.plotting import plot_stat_map
 from nilearn.reporting import get_clusters_table
 
-def loadFile(inputfile):
+def load_file(inputfile):
     """
-    - Loading the nifti file format and header information
-    - Usually will be accessing the config.json file for the inputfile
-    - Returns a image object and header object
+    Loading the nifti file format and header information
+
+        Parameters:
+            inputfile (str): the file path name within the system
+
+        Returns:
+            img(FileBasedImage): Nifti image object
+            hdr(FileBasedHeader): Header object of the inputted Nifti image
     """
-    
     img = nib.load(inputfile)
     hdr = img.header
     return img, hdr
 
-def checkHeader(hdr_obj):
+# For debugging purposes
+def check_header(hdr_obj):
     """
-    - Checking the header information to see if there are any empty fields
-    - Mostly for debugging purposes
+    Acessing Header information if needed
+
+        Parameters:
+            hdr_obj(FileBasedHeader): Header object file
     """
     
     data_shape = hdr_obj.get_data_shape()
@@ -40,9 +47,15 @@ def checkHeader(hdr_obj):
     print("Spatial units:", spatial_units)
     print("Temporal units:", temporal_units)
 
+# For Debugging Purposes
 def generate_first_slice(img_obj, save:bool, save_add):
     """
-    - Generating the first slice of the BOLD functional MRI
+    Generating and storing the first slice of the BOLD functional MRI
+    
+        Parameters:
+            img_obj(FileBasedImage): Nifti image object
+            save(bool): Option to save
+            save_add: Local path address to save the image at
     """
     func_data = nilearn.image.index_img(img_obj, 0)
     plot_img(func_data, colorbar=True, cbar_tick_format="%i")
@@ -51,26 +64,19 @@ def generate_first_slice(img_obj, save:bool, save_add):
         final_save_add = save_add + "slices/first_slice.png"
         plt.savefig(final_save_add)
         plt.close()
-    
-def get_mean_slice(img_obj):
-    """
-    - Generating the mean slice of the object using BOLD functional MRI image object
-    - Returns a mean nifti image
-    """
-    return mean_img(img_obj)
-
-def get_stimfile(inputfile):
-    """
-    - Getting tsv/csv file containing the events for the specific trial
-    - Returns a dataframe
-    """
-    return pd.read_table(inputfile)
 
 def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
     """
-    - Generating First Level GLM
-    - param will be a dictionary object containing the user-set parameter for the GLM
-    - Returns a GLM
+    Generating First Level GLM
+    
+        Parameters:
+            img_obj(FileBasedImage): Nifti image object
+            hdr_obj(FileBasedHeader): Nifti header object
+            eventfile(Dataframe): CSV file containing the details of the conditional periods of the experiment
+            param(Dict): dictionary object containing the customized parameters for the GLM analysis
+
+        Returns:
+            fmri_glm(FirstLevelModel): GLM for the said session
     """
 
     fmri_glm = FirstLevelModel(
@@ -88,8 +94,15 @@ def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
 
 def get_design_mtrx(glm_model_object, save: bool, save_add):
     """
-    - Generating Design Matrix and save when user set save boolean to true
-    - Returns GLM
+    Generating and storing Design Matrix
+    
+        Parameters:
+            glm_model_object(FirstLevelModel): GLM object created from the Nifti image
+            save(bool): option to save
+            save_add(str): file path address to save instance of design matrix
+    
+        Returns:
+            design_matrix(Dataframe): Design Matrix from the GLM object that was created earlier
     """
 
     design_matrix = glm_model_object.design_matrices_[0]
@@ -106,8 +119,13 @@ def get_design_mtrx(glm_model_object, save: bool, save_add):
 
 def get_conditions(design_matrix_df: pd.DataFrame):
     """
-    - Extracting the Conditions from the previously created Design Matrix
-    - Returns a List object containing just the conditions from the Dataframe
+    Extracting the Conditions from the previously created Design Matrix
+
+        Parameters:
+            design_matrix_df(Dataframe): Design Matrix from a General Linear Model
+        
+        Returns:
+            conditions(List): a list containing just the conditions from the Dataframe
     """
     
     keywords = ["drift_", "constant"]
@@ -121,7 +139,13 @@ def get_conditions(design_matrix_df: pd.DataFrame):
 
 def display_expected_response_graph(design_mtrx, conditional, save: bool, sv_add):
     """
-    - Generating the Expected Response Graph for the condition that was passed in through the "conditional" argument
+    Generating the Expected Response Graph for the condition that was passed in through the "conditional" argument
+    
+        Parameters:
+            design_mtrx(Dataframe): Design Matrix from a General Linear Model
+            conditional(str): The condition label from the experiment
+            save(bool): Boolean to save the design matrix as a jpeg instance
+            sv_add(str): local file path address to save the jpeg
     """
 
     plt.plot(design_mtrx[conditional])
@@ -133,10 +157,15 @@ def display_expected_response_graph(design_mtrx, conditional, save: bool, sv_add
         plt.savefig(final_save_add)
         plt.close()
 
-def create_contrast_mtrix(design_matrix_df: pd.DataFrame):
+def create_contrast_matrix_instance(design_matrix_df: pd.DataFrame):
     """
-    - Creating contrast matrix via extracting the length of the design matrix and assigning true values based on the index of the condition within the dictionary
-    - Returns dictionary containing conditions of the NifTi object and its corresponding matrix
+    Creating contrast matrix via extracting the length of the design matrix and assigning true values based on the index of the condition within the dictionary
+
+        Parameters:
+            design_matrix_df(Dataframe): Design Matrix from a General Linear Model
+    
+        Returns:
+            conditions(dict): dict object containing conditions of the NifTi object and its corresponding matrix
     """
     
     # getting the column length of design matrix 
@@ -158,9 +187,15 @@ def create_contrast_mtrix(design_matrix_df: pd.DataFrame):
 
     return conditions
 
-def plot_contrst_matrix(cond_dict: dict, design_matrx, save: bool, save_add):
+def plotting_contrast_matrices(cond_dict: dict, design_matrx, save: bool, save_add):
     """
-    - Generates contrasts matrixs of the conditions that were passed in through via the conditions dictionary created previously
+    Generates contrasts matrixs of the conditions that were passed in through via the conditions dictionary created previously
+
+        Parameters:
+            cond_dict(dict): dict object containing conditions of the NifTi object and its corresponding matrix
+            design_matrx(Dataframe): Design Matrix from a General Linear Model
+            save(Bool): Boolean to save the contrast matrix/ces as a jpeg instance
+            save_add(str): Local file path address to save the jpeg instance
     """
 
     for conds in cond_dict:
@@ -171,32 +206,24 @@ def plot_contrst_matrix(cond_dict: dict, design_matrx, save: bool, save_add):
             plt.savefig(final_save_add)
             plt.close()
 
+def get_threshold_map_z(zmap, background_img, thrshold: int, condtn:str="", save:bool=False, save_add:str=""):
+    """
+    Generates a visualization of the statistical map with voxels that are have z-scores greater than the user-set threshold and is diplayed in the z plane
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            background_img(Nifti Image): Mean Background functional image
+            thrshold(int): Z-score threshold
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
 
-def get_effmap(conds, input_glm):
-    """
-    - conds: condition that needs a effect map; needs to the np.array
-    - input glm: fmri_glm object created earlier
-    """
-    return input_glm.compute_contrast(conds, output_type="effect_size")
-
-def get_zmap(conds, input_glm):
-    """
-    - conds: condition that needs a effect map; needs to the np.array
-    - input glm: fmri_glm object created earlier
-    """
-    return input_glm.compute_contrast(conds, output_type="z_score")
-
-
-def get_threshold_map_z(zmap, background_img, thrshold: int, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
-    """
-    - Generates a visualization of the statistical map with voxels that are have z-scores greater than the user-set threshold and is diplayed in the z plane
     """
     plot_stat_map(
         zmap,
         bg_img=background_img,
         threshold=thrshold,
         display_mode="z",
-        cut_coords=cut_crds,
         black_bg=True,
         title=f"{condtn} (Z>3)"
     )
@@ -207,10 +234,18 @@ def get_threshold_map_z(zmap, background_img, thrshold: int, cut_crds=3, condtn:
         plt.close()
 
 
-def get_threshold_map_p(zmap, background_img, a_val: float=0.001, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
+def get_threshold_map_p(zmap, background_img, a_val: float=0.001, condtn:str="", save:bool=False, save_add:str=""):
     """
     - Generates a visualization of the statistical map with voxels that have p-values less than the user-set alpha-value and is diplayed in the z plane
-    - a_val can be adjusted
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            background_img(Nifti Image): Mean Background functional image
+            a_val(int): false positive rate threshold
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+    
     """
 
     _, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="fpr")
@@ -220,7 +255,6 @@ def get_threshold_map_p(zmap, background_img, a_val: float=0.001, cut_crds=3, co
         bg_img=background_img,
         threshold=threshld,
         display_mode="z",
-        cut_coords=cut_crds,
         black_bg=True,
         title=f"{condtn} (p<{a_val})"
     )
@@ -231,10 +265,18 @@ def get_threshold_map_p(zmap, background_img, a_val: float=0.001, cut_crds=3, co
         plt.close()
 
 
-def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
+def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, condtn:str="", save:bool=False, save_add:str=""):
     """
     - Generates a visualization of the statistical map with voxels that are Bonferroni-corrected, has a p-value of less than 0.05 and is diplayed in the z plane
-    - a_val can be adjusted
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            background_img(Nifti Image): Mean Background functional image
+            a_val(int): false positive rate threshold
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+    
     """
 
     _, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="bonferroni")
@@ -244,7 +286,6 @@ def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cut_
         bg_img=background_img,
         threshold=threshld,
         display_mode="z",
-        cut_coords=cut_crds,
         black_bg=True,
         title=f"{condtn} (p<{a_val}, corrected)" 
     )
@@ -255,11 +296,18 @@ def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cut_
         plt.close()
 
 
-def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05, cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):    
+def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05,  condtn:str="", save:bool=False, save_add:str=""):    
     """
-    - Generates a visualization of the statistical map with voxels that are corrected via a set False Discovery Rate 
-        - set False Discovery Rate: Controlling the expected proportion of false discoveries among detections by setting it to 0.05 or 5%
-        - The base rate can be set by the user
+    Generates a visualization of the statistical map with voxels that are corrected via a set False Discovery Rate 
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            background_img(Nifti Image): Mean Background functional image
+            a_val(int): false positive rate threshold
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+    
     """
 
     _, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="fdr")
@@ -269,7 +317,6 @@ def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05, cut_crds=3, c
         bg_img=background_img,
         threshold=threshld,
         display_mode="z",
-        cut_coords=cut_crds,
         black_bg=True,
         title=f"{condtn} (fdr={a_val})" 
     )
@@ -279,10 +326,19 @@ def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05, cut_crds=3, c
         plt.savefig(final_save_add)
         plt.close()
 
-def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, clstr:int=10,cut_crds=3, condtn:str="", save:bool=False, save_add:str=""):
+def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, clstr:int=10, condtn:str="", save:bool=False, save_add:str=""):
     """
     - Generates a visualization of the statistical map with activated significant voxel clusters that are corrected via a set False Discovery Rate
-    - a_val can be adjusted for the False Discovery Rate
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            background_img(Nifti Image): Mean Background functional image
+            a_val(int): false positive rate threshold
+            clstr: Cluster size threshold (cluster size below threshold will not be shown)
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+    
     """
 
     clean_map, threshld = threshold_stats_img(
@@ -294,7 +350,6 @@ def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, cls
         bg_img=background_img,
         threshold=threshld,
         display_mode="z",
-        cut_coords=cut_crds,
         black_bg=True,
         title=f"{condtn} (fdr={a_val}), clusters > {clstr} voxels" 
     )
@@ -305,10 +360,18 @@ def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, cls
         plt.close()
 
 
-def get_clstrs_table(zmap, a_val: float=0.05, clstr:int=10, condtn:str="", save:bool=False, save_add:str=""):
+def get_clusters_threshold_map(zmap, a_val: float=0.05, clstr:int=10, condtn:str="", save:bool=False, save_add:str=""):
     """
     - Generating a csv/table version of the Clusters Threshold Map
-    - a_val (alpha value) and the cluster limit (base set to 10 or higher voxels) can be adjusted by the user
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            a_val(int): false positive rate threshold
+            clstr: Cluster size threshold (cluster size below threshold will not be shown)
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+    
     """
 
     _, threshld = threshold_stats_img(
@@ -322,16 +385,16 @@ def get_clstrs_table(zmap, a_val: float=0.05, clstr:int=10, condtn:str="", save:
     if save:
         table.to_csv(rf"{save_add}table/clusters_table_{condtn}.csv",sep=",", header=True)
 
-"""
-Done with Analysis
-
-Now for QA and f-test
-"""
-
-
-def effcts_interest(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
+def get_effects_of_interest_matrix(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
     """
-    - Generates a Effects of Interest contrast matrix based on all the conditions that were part of the NifTi file
+    Generates a Effects of Interest contrast matrix based on all the conditions that were part of the NifTi file
+
+        Parameters:
+            conditions(dict): Contrast Matrix of the conditions
+            dsgn_mtrx(Dataframe): Design Matrix from a GLM
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+
     """
 
     e_o_i= np.vstack(tuple(conditions.values()))
@@ -343,10 +406,20 @@ def effcts_interest(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
         plt.savefig(final_save_add)
         plt.close()
 
-def get_ftest_map(zmap, background_img, a_val: float=0.05, clstr:int=10,cut_crds=3, condtn:str="",save:bool=False, save_add:str=""):
+def get_f_test_map(zmap, background_img, a_val: float=0.05, clstr:int=10, condtn:str="",save:bool=False, save_add:str=""):
     """
-    - Generate a visualization of the statistical map of the F test in which one seeks whether a certain combination of conditions (possibly two-, three- or higher-dimensional),
+    Generate a visualization of the statistical map of the F test in which one seeks whether a certain combination of conditions (possibly two-, three- or higher-dimensional),
     which explains a significant proportion of the signal.
+    
+        Parameters:
+            zmap(Nifti Image): Z-scaled Statistical Map formed from t-statistic
+            background_img(Nifti Image): Mean Background functional image
+            a_val(int): false positive rate threshold
+            clstr: Cluster size threshold (cluster size below threshold will not be shown)
+            condtn(str): Condition Label
+            save(bool): Boolean on whether or not to save the plot map as a jpeg
+            save_add(str): Local file path address to save the jpeg instance
+
     """
 
     clean_map, threshold = threshold_stats_img(
@@ -358,7 +431,6 @@ def get_ftest_map(zmap, background_img, a_val: float=0.05, clstr:int=10,cut_crds
         bg_img=background_img,
         threshold=threshold,
         display_mode="z",
-        cut_coords=cut_crds,
         black_bg=True,
         title=f"Effects of interest for {condtn}(fdr=0.05), clusters > 10 voxels",
     )
@@ -381,7 +453,7 @@ def main():
         os.makedirs(directory, exist_ok=True)
 
     # Attaining the img and the header object
-    subj_img, subj_hdr = loadFile(config["bold"])
+    subj_img, subj_hdr = load_file(config["bold"])
     
     # Use when checking for header information
     """
@@ -396,15 +468,15 @@ def main():
     """
 
     # Importing the events file and assigning commonly used objects within the config.json file as a local object
-    evnts = get_stimfile(config["events"])
+    evnts = pd.read_table(config["events"])
     save_path = config["save_directory"]
     glm_param = config["glm_parameters"]
 
-    # Generates first slice and saves it
-    generate_first_slice(subj_img, True, save_path)
+    # Generates first slice and saves it; Commented out for debugging use
+    # generate_first_slice(subj_img, True, save_path)
     
     # Generates mean slice
-    mean_bg_img = get_mean_slice(subj_img)
+    mean_bg_img = mean_img(subj_img)
 
     # Generates GLM Object
     subj_glm = generate_glm_firstLevel(subj_img, subj_hdr, evnts, glm_param)
@@ -420,32 +492,32 @@ def main():
         display_expected_response_graph(subj_dsgn_mtrx, individual_cond, True, save_path)
     
     # Generate Contrast Matrix
-    subj_contrst_mtrx = create_contrast_mtrix(subj_dsgn_mtrx)
+    subj_contrst_mtrx = create_contrast_matrix_instance(subj_dsgn_mtrx)
 
     # Saving the Contrast Matrix as an media file
-    plot_contrst_matrix(subj_contrst_mtrx, subj_dsgn_mtrx,True, save_path)
+    plotting_contrast_matrices(subj_contrst_mtrx, subj_dsgn_mtrx,True, save_path)
     
     # Traversing each condition available and getting all the analysis out and storing them within the previously created directories
     for item in subj_contrst_mtrx:
-        eff_map_subj = get_effmap(subj_contrst_mtrx[item], subj_glm)
-        z_map_subj = get_zmap(subj_contrst_mtrx[item], subj_glm)
+        eff_map_subj = subj_glm.compute_contrast(subj_contrst_mtrx[item], output_type="effect_size")
+        z_map_subj = subj_glm.compute_contrast(subj_contrst_mtrx[item], output_type="z_score")
         
-        get_threshold_map_z(z_map_subj, mean_bg_img, 3, 3, item, True, save_path)
+        get_threshold_map_z(z_map_subj, mean_bg_img, 3, item, True, save_path)
 
-        get_threshold_map_p(z_map_subj, mean_bg_img, 0.001, 3, item, True, save_path)
+        get_threshold_map_p(z_map_subj, mean_bg_img, 0.001, item, True, save_path)
 
-        get_threshold_map_p_bonferroni(z_map_subj, mean_bg_img, 0.05, 3, item, True, save_path)
+        get_threshold_map_p_bonferroni(z_map_subj, mean_bg_img, 0.05, item, True, save_path)
 
-        get_threshold_map_fdr(z_map_subj, mean_bg_img, 0.05, 3, item, True, save_path)
+        get_threshold_map_fdr(z_map_subj, mean_bg_img, 0.05, item, True, save_path)
 
-        get_large_cluster_threshold_map(z_map_subj, mean_bg_img, 0.05, 10, 3, item, True, save_path)
+        get_large_cluster_threshold_map(z_map_subj, mean_bg_img, 0.05, 10, item, True, save_path)
 
-        get_clstrs_table(z_map_subj, 0.05, 10, item, True, save_path)
+        get_clusters_threshold_map(z_map_subj, 0.05, 10, item, True, save_path)
 
     # Generating Effect of Interest contrast matrix and the f-test statistical map as QA measurements
-    effcts_interest(subj_contrst_mtrx, subj_dsgn_mtrx, True, save_path)
+    get_effects_of_interest_matrix(subj_contrst_mtrx, subj_dsgn_mtrx, True, save_path)
 
-    get_ftest_map(z_map_subj, mean_bg_img, 0.05, 10, 3, item, True, save_path)
+    get_f_test_map(z_map_subj, mean_bg_img, 0.05, 10, item, True, save_path)
 
 
 if __name__ == "__main__":
