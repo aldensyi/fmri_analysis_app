@@ -391,7 +391,7 @@ def get_clusters_threshold_table(zmap, a_val: float=0.05, clstr:int=10, condtn:s
     )
 
     if save:
-        table.to_csv(rf"{save_add}clusters/clusters_table_{condtn}.csv",sep=",", header=True)
+        table.to_csv(rf"{save_add}clusters/contrast-stats/clusters_table_{condtn}.csv",sep=",", header=True)
 
 def get_effects_of_interest_matrix(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
     """
@@ -459,7 +459,7 @@ def main():
         config = json.load(f)
 
     # Create directories
-    directories = ['data', 'data/maps', 'data/images', 'data/clusters', 'data/maps/z-stat', 'data/maps/p-stat', 'data/maps/p-stat_bonferroni_corrected', 'data/maps/p-stat_fdr_corrected', 'data/maps/large-cluster_thresholded', 'data/maps/f-test']
+    directories = ['data', 'data/maps', 'data/images', 'data/clusters', 'data/maps/z-stat', 'data/maps/p-stat', 'data/maps/p-stat_bonferroni_corrected', 'data/maps/p-stat_fdr_corrected', 'data/maps/large-cluster_thresholded', 'data/maps/f-test', 'data/clusters/contrast-stats']
 
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
@@ -468,7 +468,7 @@ def main():
     subj_img, subj_hdr = load_file(config["bold"])
     
     # Use when checking for header information
-    '''
+    
     data_shape = subj_hdr.get_data_shape()
     voxel_sizes = subj_hdr.get_zooms()
     spatial_units, temporal_units = subj_hdr.get_xyzt_units()
@@ -477,7 +477,7 @@ def main():
     print("Voxel sizes:", voxel_sizes)
     print("Spatial units:", spatial_units)
     print("Temporal units:", temporal_units)
-    '''
+    
 
     # Importing the events file and assigning commonly used objects within the config.json file as a local object
     evnts = pd.read_table(config["events"])
