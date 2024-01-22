@@ -74,7 +74,6 @@ def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
         
         slice_time_ref = param["slice_time_ref"],
         drift_order = param["drift_order"],
-        fir_delays = param["fir_delays"],
         min_onset = param["min_onset"],
         mask_img = param["mask_img"],
         smoothing_fwhm = param["smoothing_fwhm"],
@@ -501,7 +500,6 @@ def main():
     glm_param["high_pass"] = config["high_pass"]
     glm_param["slice_time_ref"] = config["slice_time_ref"]
     glm_param["drift_order"] = config["drift_order"]
-    glm_param["fir_delays"] = config["fir_delays"]
     glm_param["min_onset"] = config["min_onset"]
     glm_param["smoothing_fwhm"] = config["smoothing_fwhm"]
     glm_param["verbose"] = config["verbose"]

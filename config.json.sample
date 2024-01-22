@@ -9,7 +9,6 @@
     
     "slice_time_ref":0.0,
     "drift_order": 1,
-    "fir_delays": [0],
     "min_onset": -24,
     "mask_img": "",
     "smoothing_fwhm": 0.0,
