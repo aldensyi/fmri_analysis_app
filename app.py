@@ -247,7 +247,7 @@ def get_threshold_map_p(zmap, background_img, a_val: float=0.001, condtn:str="",
 
     output_map, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="fpr")
 
-    output_map.to_filename(join(save_add, f"maps/p-stat/p-score_thresholded_map_{condtn}.nii.gz"))
+    output_map.to_filename(join(save_add, f"p_stat/p-score_thresholded_map_{condtn}.nii.gz"))
     
     plot_stat_map(
         zmap,
@@ -281,7 +281,7 @@ def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cond
 
     output_map, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="bonferroni")
 
-    output_map.to_filename(join(save_add, f"maps/p-stat_bonferroni_corrected/bonferroni-corrected_thresholded_map_{condtn}.nii.gz"))
+    output_map.to_filename(join(save_add, "p_stat_bonferroni_corrected/bonferroni-corrected_thresholded_map_{condtn}.nii.gz"))
 
     plot_stat_map(
         zmap,
@@ -315,7 +315,7 @@ def get_threshold_map_fdr(zmap, background_img, a_val: float=0.05,  condtn:str="
 
     output_map, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="fdr")
 
-    output_map.to_filename(join(save_add, f"maps/p-stat_fdr_corrected/fdr-corrected_thresholded_map_{condtn}.nii.gz"))
+    output_map.to_filename(join(save_add, f"p_stat_fdr_corrected/fdr-corrected_thresholded_map_{condtn}.nii.gz"))
 
     plot_stat_map(
         zmap,
@@ -351,7 +351,7 @@ def get_large_cluster_threshold_map(zmap, background_img, a_val: float=0.05, cls
         zmap, alpha=a_val, height_control="fdr", cluster_threshold=clstr
     )
 
-    clean_map.to_filename(join(save_add, f"maps/large-cluster_thresholded/large_cluster_thresholded_map_{condtn}.nii.gz"))
+    clean_map.to_filename(join(save_add, f"large_cluster_thresholded/large_cluster_thresholded_map_{condtn}.nii.gz"))
 
     plot_stat_map(
         clean_map,
@@ -391,7 +391,7 @@ def get_clusters_threshold_table(zmap, a_val: float=0.05, clstr:int=10, condtn:s
     )
 
     if save:
-        table.to_csv(rf"{save_add}clusters/contrast-stats/clusters_table_{condtn}.csv",sep=",", header=True)
+        table.to_csv(rf"{save_add}clusters/clusters_table_{condtn}.csv",sep=",", header=True)
 
 def get_effects_of_interest_matrix(conditions: dict, dsgn_mtrx, save:bool, save_add:str):
     """
@@ -436,7 +436,7 @@ def get_f_test_map(zmap, background_img, a_val: float=0.05, clstr:int=10, condtn
         zmap, alpha=a_val, height_control="fdr", cluster_threshold=clstr
     )
 
-    clean_map.to_filename(join(save_add, f"maps/f-test/f-test_map_{condtn}.nii.gz"))
+    clean_map.to_filename(join(save_add, f"f_test/f-test_map_{condtn}.nii.gz"))
 
     plot_stat_map(
         clean_map,
@@ -459,7 +459,7 @@ def main():
         config = json.load(f)
 
     # Create directories
-    directories = ['data', 'data/maps', 'data/images', 'data/clusters', 'data/maps/z-stat', 'data/maps/p-stat', 'data/maps/p-stat_bonferroni_corrected', 'data/maps/p-stat_fdr_corrected', 'data/maps/large-cluster_thresholded', 'data/maps/f-test', 'data/clusters/contrast-stats']
+    directories = ['images', 'clusters', 'z_stat', 'p_stat', 'p_stat_bonferroni_corrected', 'p_stat_fdr_corrected', 'large_cluster_thresholded', 'f_test']
 
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
@@ -468,7 +468,7 @@ def main():
     subj_img, subj_hdr = load_file(config["bold"])
     
     # Use when checking for header information
-    
+    '''
     data_shape = subj_hdr.get_data_shape()
     voxel_sizes = subj_hdr.get_zooms()
     spatial_units, temporal_units = subj_hdr.get_xyzt_units()
@@ -477,7 +477,7 @@ def main():
     print("Voxel sizes:", voxel_sizes)
     print("Spatial units:", spatial_units)
     print("Temporal units:", temporal_units)
-    
+    '''
 
     # Importing the events file and assigning commonly used objects within the config.json file as a local object
     evnts = pd.read_table(config["events"])
@@ -513,7 +513,7 @@ def main():
     for item in subj_contrst_mtrx:
         eff_map_subj = subj_glm.compute_contrast(subj_contrst_mtrx[item], output_type="effect_size")
         z_map_subj = subj_glm.compute_contrast(subj_contrst_mtrx[item], output_type="z_score")
-        z_map_subj.to_filename(join(save_path, f"maps/z-stat/z_map_{item}.nii.gz"))
+        z_map_subj.to_filename(join(save_path, f"z_stat/z_map_{item}.nii.gz"))
         
         get_threshold_map_z(z_map_subj, mean_bg_img, 3, item, True, save_path)
 
