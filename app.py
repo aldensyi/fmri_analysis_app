@@ -70,7 +70,16 @@ def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
         standardize=param["standardize"],
         hrf_model=param["hrf_model"],
         drift_model=param["drift_model"],
-        high_pass=param["high_pass"]
+        high_pass=param["high_pass"],
+        
+        slice_time_ref = param["slice_time_ref"],
+        drift_order = param["drift_order"],
+        fir_delays = param["fir_delays"],
+        min_onset = param["min_onset"],
+        mask_img = param["mask_img"],
+        smoothing_fwhm = param["smoothing_fwhm"],
+        verbose = param["verbose"],
+        subject_label = param["subject_label"] 
     )
     
     fmri_glm = fmri_glm.fit(img_obj, eventfile)
@@ -482,7 +491,28 @@ def main():
     # Importing the events file and assigning commonly used objects within the config.json file as a local object
     evnts = pd.read_table(config["events"])
     save_path = config["save_directory"]
-    glm_param = config["glm_parameters"]
+    glm_param = {}
+
+    # putting all the GLM Parameters into the glm_param dict object
+    glm_param["noise_model"] = config["noise_model"]
+    glm_param["standardize"] = config["standardize"]
+    glm_param["hrf_model"] = config["hrf_model"]
+    glm_param["drift_model"] = config["drift_model"]
+    glm_param["high_pass"] = config["high_pass"]
+    glm_param["slice_time_ref"] = config["slice_time_ref"]
+    glm_param["drift_order"] = config["drift_order"]
+    glm_param["fir_delays"] = config["fir_delays"]
+    glm_param["min_onset"] = config["min_onset"]
+    glm_param["smoothing_fwhm"] = config["smoothing_fwhm"]
+    glm_param["verbose"] = config["verbose"]
+    glm_param["subject_label"] = config["subject_label"]
+
+    if config["mask_img"]:
+        glm_param["mask_img"] = config["mask_img"]
+    else:
+        glm_param["mask_img"] = None
+
+    print(glm_param["mask_img"])
 
     # Generates first slice and saves it; Commented out for debugging use
     # generate_first_slice(subj_img, True, save_path)
