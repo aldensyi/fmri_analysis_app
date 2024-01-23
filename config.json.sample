@@ -12,6 +12,6 @@
     "min_onset": -24,
     "mask_img": "",
     "smoothing_fwhm": 0.0,
-    "verbose": 0,
+    "verbose": 1,
     "subject_label":""
 }
