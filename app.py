@@ -290,7 +290,7 @@ def get_threshold_map_p_bonferroni(zmap, background_img, a_val: float=0.05, cond
 
     output_map, threshld = threshold_stats_img(zmap, alpha=a_val, height_control="bonferroni")
 
-    output_map.to_filename(join(save_add, "p_stat_bonferroni_corrected/bonferroni-corrected_thresholded_map_{condtn}.nii.gz"))
+    output_map.to_filename(join(save_add, f"p_stat_bonferroni_corrected/bonferroni-corrected_thresholded_map_{condtn}.nii.gz"))
 
     plot_stat_map(
         zmap,
@@ -497,22 +497,27 @@ def main():
     glm_param["noise_model"] = config["noise_model"]
     glm_param["standardize"] = config["standardize"]
     glm_param["hrf_model"] = config["hrf_model"]
-    glm_param["drift_model"] = config["drift_model"]
     glm_param["high_pass"] = config["high_pass"]
     glm_param["slice_time_ref"] = config["slice_time_ref"]
     glm_param["drift_order"] = config["drift_order"]
     glm_param["fir_delays"] = config["fir_delays"]
     glm_param["min_onset"] = config["min_onset"]
-    glm_param["smoothing_fwhm"] = config["smoothing_fwhm"]
     glm_param["verbose"] = config["verbose"]
     glm_param["subject_label"] = config["subject_label"]
+
+    if config["smoothing_fwhm"]:
+        glm_param["smoothing_fwhm"] = config["smoothing_fwhm"]
+    else:
+        glm_param["smoothing_fwhm"] = None
+    if config["drift_model"] != "None":
+        glm_param["drift_model"] = config["drift_model"]
+    else:
+        glm_param["drift_model"] = None
 
     if config["mask_img"]:
         glm_param["mask_img"] = config["mask_img"]
     else:
         glm_param["mask_img"] = None
-
-    print(glm_param["mask_img"])
 
     # Generates first slice and saves it; Commented out for debugging use
     # generate_first_slice(subj_img, True, save_path)
