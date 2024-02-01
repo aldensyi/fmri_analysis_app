@@ -1,6 +1,8 @@
 {
     "bold":"testcase/bold.nii.gz",
     "events":"testcase/events.tsv",
+    "save_directory":"./",
+    
     "noise_model":"ar1",
     "standardize": false,
     "hrf_model":"spm",
