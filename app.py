@@ -500,7 +500,6 @@ def main():
     glm_param["high_pass"] = config["high_pass"]
     glm_param["slice_time_ref"] = config["slice_time_ref"]
     glm_param["drift_order"] = config["drift_order"]
-    glm_param["fir_delays"] = config["fir_delays"]
     glm_param["min_onset"] = config["min_onset"]
     glm_param["verbose"] = config["verbose"]
     glm_param["subject_label"] = config["subject_label"]
