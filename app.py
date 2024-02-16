@@ -490,7 +490,7 @@ def main():
 
     # Importing the events file and assigning commonly used objects within the config.json file as a local object
     evnts = pd.read_table(config["events"])
-    save_path = config["save_directory"]
+    save_path = "./"
     glm_param = {}
 
     # putting all the GLM Parameters into the glm_param dict object
