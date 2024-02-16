@@ -63,24 +63,39 @@ def generate_glm_firstLevel(img_obj, hdr_obj, eventfile, param):
         Returns:
             fmri_glm(FirstLevelModel): GLM for the said session
     """
-
-    fmri_glm = FirstLevelModel(
-        t_r=int(hdr_obj.get_zooms()[3]),
-        noise_model=param["noise_model"],
-        standardize=param["standardize"],
-        hrf_model=param["hrf_model"],
-        drift_model=param["drift_model"],
-        high_pass=param["high_pass"],
-        
-        slice_time_ref = param["slice_time_ref"],
-        drift_order = param["drift_order"],
-        fir_delays = param["fir_delays"],
-        min_onset = param["min_onset"],
-        mask_img = param["mask_img"],
-        smoothing_fwhm = param["smoothing_fwhm"],
-        verbose = param["verbose"],
-        subject_label = param["subject_label"] 
-    )
+    if "mask_img" in param:
+        fmri_glm = FirstLevelModel(
+            t_r=int(hdr_obj.get_zooms()[3]),
+            noise_model=param["noise_model"],
+            standardize=param["standardize"],
+            hrf_model=param["hrf_model"],
+            drift_model=param["drift_model"],
+            high_pass=param["high_pass"],
+            
+            slice_time_ref = param["slice_time_ref"],
+            drift_order = param["drift_order"],
+            min_onset = param["min_onset"],
+            mask_img = param["mask_img"],
+            smoothing_fwhm = param["smoothing_fwhm"],
+            verbose = param["verbose"],
+            subject_label = param["subject_label"] 
+        )
+    else:
+        fmri_glm = FirstLevelModel(
+            t_r=int(hdr_obj.get_zooms()[3]),
+            noise_model=param["noise_model"],
+            standardize=param["standardize"],
+            hrf_model=param["hrf_model"],
+            drift_model=param["drift_model"],
+            high_pass=param["high_pass"],
+            
+            slice_time_ref = param["slice_time_ref"],
+            drift_order = param["drift_order"],
+            min_onset = param["min_onset"],
+            smoothing_fwhm = param["smoothing_fwhm"],
+            verbose = param["verbose"],
+            subject_label = param["subject_label"] 
+        )
     
     fmri_glm = fmri_glm.fit(img_obj, eventfile)
 
