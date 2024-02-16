@@ -26,6 +26,6 @@ However, if you want to cite Nilearn and its related modules:
 }  
 ```
 
-#### MIT Copyright (c) 2022 brainlife.io The University of Texas at Austin
+#### MIT Copyright (c) 2024 brainlife.io The University of Texas at Austin
 
 ## Running the App
