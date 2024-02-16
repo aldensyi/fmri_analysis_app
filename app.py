@@ -513,10 +513,11 @@ def main():
     else:
         glm_param["drift_model"] = None
 
-    if config["mask_img"]:
-        glm_param["mask_img"] = config["mask_img"]
-    else:
-        glm_param["mask_img"] = None
+    if "mask_img" in config:
+        if config["mask_img"]:
+            glm_param["mask_img"] = config["mask_img"]
+        else:
+            glm_param["mask_img"] = None
 
     # Generates first slice and saves it; Commented out for debugging use
     # generate_first_slice(subj_img, True, save_path)
